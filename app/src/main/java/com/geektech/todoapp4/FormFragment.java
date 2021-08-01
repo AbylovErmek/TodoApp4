@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 public class FormFragment extends Fragment {
 
     private EditText editText;
+    private boolean isRedact = false;
+    private Task task;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -32,7 +34,11 @@ public class FormFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Task task = (Task) requireArguments().getSerializable("task");
         editText = view.findViewById(R.id.editText);
-        if (task != null)editText.setText(task.getTite());
+        if (task != null){
+            this.task = task;
+            isRedact = true;
+            editText.setText(task.getTite());
+        }
 
         view.findViewById(R.id.btnSave).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -45,9 +51,16 @@ public class FormFragment extends Fragment {
     private void save() {
         String text = editText.getText().toString();
         Bundle bundle = new Bundle();
-        Task task = new Task(text);
+        if (isRedact) task.setTite(text);
+        else task = new Task(text);
+        task.setCreatedAt(System.currentTimeMillis());
         bundle.putSerializable("task", task);
-        getParentFragmentManager().setFragmentResult("rk_form", bundle);
+
+        if (isRedact)getParentFragmentManager().setFragmentResult("rk_form2", bundle);
+        else getParentFragmentManager().setFragmentResult("rk_form", bundle);
+
+        App.getAppDatabase().taskDao().insert(task);
+
         close();
     }
 

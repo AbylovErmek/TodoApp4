@@ -5,6 +5,9 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -19,13 +22,15 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.geektech.todoapp4.App;
 import com.geektech.todoapp4.OnItemClickListener;
 import com.geektech.todoapp4.R;
 import com.geektech.todoapp4.databinding.FragmentHomeBinding;
 import com.geektech.todoapp4.ui.models.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class HomeFragment extends Fragment {
 
@@ -37,6 +42,8 @@ public class HomeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         binding = FragmentHomeBinding.inflate(getLayoutInflater());
         adapter = new TaskAdapter();
+        List<Task> list = App.getAppDatabase().taskDao().getAll();
+        adapter.addItems(list);
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -65,7 +72,9 @@ public class HomeFragment extends Fragment {
                         setPositiveButton("Да", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                App.getAppDatabase().taskDao().delete(adapter.list.get(position));
                                 adapter.removeItem(position);
+                                adapter.list.remove(position);
                             }
                         }).setNegativeButton("Нет", null).show();
             }
@@ -87,6 +96,17 @@ public class HomeFragment extends Fragment {
                 Task task = (Task) result.getSerializable("task");
                 Log.e("Home", "text: " + task.getTite());
                 adapter.addItem(task);
+            }
+        });
+
+        getParentFragmentManager().setFragmentResultListener("rk_form2", getViewLifecycleOwner(), new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull @NotNull String requestKey, @NonNull @NotNull Bundle result) {
+                Task task = (Task) result.getSerializable("task");
+                int pos = adapter.list.lastIndexOf(task);
+                adapter.list.remove(pos);
+                adapter.list.add(pos, task);
+                adapter.notifyDataSetChanged();
             }
         });
     }

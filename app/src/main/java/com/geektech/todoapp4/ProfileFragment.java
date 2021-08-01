@@ -58,10 +58,10 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        String imageBitmap = Prefs.getInstance().uriImage();
-        if (imageBitmap != null) {
-            Bitmap bitmap = ImageUtils.decodeBase64(imageBitmap);
-            binding.ImageView.setImageBitmap(bitmap);
+        String imageUriString = Prefs.getInstance().uriImage();
+        if (imageUriString != null) {
+            Uri uri = Uri.parse(imageUriString);
+            ImageUtils.loadImage(binding.ImageView, uri);
         }
         binding.ImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,8 +88,7 @@ public class ProfileFragment extends Fragment {
             Uri selected = data.getData();
             if (selected != null) {
                 binding.ImageView.setImageURI(selected);
-                Bitmap bitmap = ((BitmapDrawable)binding.ImageView.getDrawable()).getBitmap();
-                Prefs.getInstance().uriImage(ImageUtils.encodeTobase64(bitmap));
+                Prefs.getInstance().uriImage(selected.toString());
             }
         }
     }
